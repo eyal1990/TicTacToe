@@ -25,28 +25,28 @@ angular.module('TicTacToe.game', [])
         }
     })
 
-    .controller('GameCtrl', ['$scope', 'GameService', '$localstorage', 'userService', '$modal', '$rootScope', 'serverData',
-                function ($scope, GameService, $localstorage, userService, $modal, $rootScope, serverData) {
+    .controller('GameCtrl', ['$scope', 'GameService', '$localstorage', '$modal', '$rootScope',
+                function ($scope, GameService, $localstorage, $modal, $rootScope) {
 
-        var socket = io.connect(serverData.ip());
-        var connected = $rootScope.loggedUser;
+        // var socket = io.connect(serverData.ip());
+        // var connected = $rootScope.loggedUser;
 
-        function closeSocket(){
-            if (game.opponent != ""){
-                userService.setGameResult(connected, false);
-                socket.emit('quit', game.opponent);
-            }
+        // function closeSocket(){
+        //     if (game.opponent != ""){
+        //         userService.setGameResult(connected, false);
+        //         socket.emit('quit', game.opponent);
+        //     }
 
-            socket.emit('exit', connected.name);
-            //socket.disconnect();
-        }
+        //     socket.emit('exit', connected.name);
+        //     //socket.disconnect();
+        // }
 
         $scope.$on('$destroy', function () {
-            closeSocket();
+            // closeSocket();
         });
 
         window.onbeforeunload = function (event) {
-            closeSocket();
+            // closeSocket();
         };
 
         this.users = ['yourself', 'computer'];
@@ -74,22 +74,22 @@ angular.module('TicTacToe.game', [])
             else {
                 this.yourTurn = false;
                 game.invitedUser = to;
-                socket.emit('ask', { to: to, code: 0 }, function (result, error) {
-                    game.waitingToResponse = result;
-                    $scope.$apply();
-                });
+                // socket.emit('ask', { to: to, code: 0 }, function (result, error) {
+                //     game.waitingToResponse = result;
+                //     $scope.$apply();
+                // });
             }
         };
 
         this.declineRequest = function (to) {
             game.askingUser = "";
-            socket.emit('decline', {name: to, msg: connected.name + " declined your request"});
+            // socket.emit('decline', {name: to, msg: connected.name + " declined your request"});
         };
 
         this.acceptInvite = function () {
-            socket.emit('ask', { to: game.askingUser, code: 1 }, function (result, error) {
-                game.waitingToResponse = result;
-            });
+            // socket.emit('ask', { to: game.askingUser, code: 1 }, function (result, error) {
+            //     game.waitingToResponse = result;
+            // });
 
             game.askingUser = undefined;
         };
@@ -100,7 +100,7 @@ angular.module('TicTacToe.game', [])
 
         this.surrender = function(){
             userService.setGameResult(connected, false);
-            socket.emit('quit', game.opponent);
+            // socket.emit('quit', game.opponent);
             $scope.open(false, 'You surrendered');
         };
 
@@ -113,105 +113,105 @@ angular.module('TicTacToe.game', [])
             $scope.$apply();
         }
 
-        socket.on('surrender', function (data) {
-            console.log(data);
+        // socket.on('surrender', function (data) {
+        //     console.log(data);
 
-            userService.setGameResult(connected, true);
-            $scope.open(true, data);
-        });
+        //     userService.setGameResult(connected, true);
+        //     $scope.open(true, data);
+        // });
 
-        socket.on('usernames', function (data) {
-            console.log("users:" + data);
-            if (data.indexOf(connected.name) > -1) {
-                data.splice(data.indexOf(connected.name), 1);
-                data.unshift("computer");
-                data.unshift("yourself");
-            }
-            game.users = data;
-            $scope.$apply();
-        });
+        // socket.on('usernames', function (data) {
+        //     console.log("users:" + data);
+        //     if (data.indexOf(connected.name) > -1) {
+        //         data.splice(data.indexOf(connected.name), 1);
+        //         data.unshift("computer");
+        //         data.unshift("yourself");
+        //     }
+        //     game.users = data;
+        //     $scope.$apply();
+        // });
 
-        socket.on('declined', function (data) {
-            game.waitingToResponse = false;
+        // socket.on('declined', function (data) {
+        //     game.waitingToResponse = false;
 
-            alert(data);
-        });
+        //     alert(data);
+        // });
 
-        socket.on('request', function (data) {
+        // socket.on('request', function (data) {
 
-            var from = data.from;
-            console.log(game.opponent == from + ' from:' + from + ' opponent: ' + game.opponent);
+        //     var from = data.from;
+        //     console.log(game.opponent == from + ' from:' + from + ' opponent: ' + game.opponent);
 
-            if (game.opponent == from){
-                game.askingUser = from;
-                return;
-            }
+        //     if (game.opponent == from){
+        //         game.askingUser = from;
+        //         return;
+        //     }
 
-            if (!game.waitingToResponse && !game.inGame) {
-                if (data.code == 0) {
-                    game.askingUser = from;
-                    $scope.$apply();
-                }
-                else {
-                    socket.emit('decline', {name: from, msg: connected.name + " cancel the invitation"});
-                }
-            }
-            else if (game.waitingToResponse && data.code == 2) {
-                startGame(true, from);
-            }
-            else if (game.waitingToResponse && data.code == 1) {
-                socket.emit('ask', { to: from, code: 2 }, function (result, error) {
-                    if (result) startGame(false, from);
-                });
-            }
-            else {
-                console.log('fourth if');
+        //     if (!game.waitingToResponse && !game.inGame) {
+        //         if (data.code == 0) {
+        //             game.askingUser = from;
+        //             $scope.$apply();
+        //         }
+        //         else {
+        //             socket.emit('decline', {name: from, msg: connected.name + " cancel the invitation"});
+        //         }
+        //     }
+        //     else if (game.waitingToResponse && data.code == 2) {
+        //         startGame(true, from);
+        //     }
+        //     else if (game.waitingToResponse && data.code == 1) {
+        //         socket.emit('ask', { to: from, code: 2 }, function (result, error) {
+        //             if (result) startGame(false, from);
+        //         });
+        //     }
+        //     else {
+        //         console.log('fourth if');
 
-                //send decline to the asking
-                socket.emit('decline', {name: from, msg: " is already in a game"});
-            }
-        });
+        //         //send decline to the asking
+        //         socket.emit('decline', {name: from, msg: " is already in a game"});
+        //     }
+        // });
 
-        socket.on('game', function (data) {
-            game.yourTurn = !game.yourTurn;
+        // socket.on('game', function (data) {
+        //     game.yourTurn = !game.yourTurn;
 
-            var cell = data.cell;
-            var board = data.board;
-            var value = data.value;
+        //     var cell = data.cell;
+        //     var board = data.board;
+        //     var value = data.value;
 
-            game.board.board[board.x][board.y].board[cell.x][cell.y].value = value;
-            game.player = value === 'x' ? 'o' : 'x';
+        //     game.board.board[board.x][board.y].board[cell.x][cell.y].value = value;
+        //     game.player = value === 'x' ? 'o' : 'x';
 
-            var cell = game.board.board[board.x][board.y].board[cell.x][cell.y];
+        //     var cell = game.board.board[board.x][board.y].board[cell.x][cell.y];
 
-            if (cell.board.getWinner()) {
-                if (game.board.getWinner()){
-                    game.yourTurn = false;
-                    userService.setGameResult(connected, false, function(user) {
-                        $rootScope.loggedUser = user;
-                    });
-                    $scope.open(false, game.opponent + ' kicked your butt');
-                }
-            }
+        //     if (cell.board.getWinner()) {
+        //         if (game.board.getWinner()){
+        //             game.yourTurn = false;
+        //             userService.setGameResult(connected, false, function(user) {
+        //                 $rootScope.loggedUser = user;
+        //             });
+        //             $scope.open(false, game.opponent + ' kicked your butt');
+        //         }
+        //     }
 
-            var allow = !game.board.board[cell.x][cell.y].isFull() && game.board.board[cell.x][cell.y].winner === undefined;
+        //     var allow = !game.board.board[cell.x][cell.y].isFull() && game.board.board[cell.x][cell.y].winner === undefined;
 
-            game.board.board.forEach(function (row) {
-                row.forEach(function (col) {
-                    col.isAlowed = !allow && col.winner === undefined && !col.isFull();
-                });
-            });
+        //     game.board.board.forEach(function (row) {
+        //         row.forEach(function (col) {
+        //             col.isAlowed = !allow && col.winner === undefined && !col.isFull();
+        //         });
+        //     });
 
-            game.board.board[cell.x][cell.y].isAlowed = allow;
+        //     game.board.board[cell.x][cell.y].isAlowed = allow;
 
-            $scope.$apply();
-        });
+        //     $scope.$apply();
+        // });
 
-        socket.emit('newuser', connected, function (result, error) {
-            if (!result) {
-                alert("You are already online in other session!")
-            }
-        });
+        // socket.emit('newuser', connected, function (result, error) {
+        //     if (!result) {
+        //         alert("You are already online in other session!")
+        //     }
+        // });
 
         game.player = 'x';
 
@@ -228,7 +228,7 @@ angular.module('TicTacToe.game', [])
                 if (game.board.getWinner()){
                     if (game.inGame){
                         userService.setGameResult(connected, true, function(user) {
-                            $rootScope.loggedUser = user;
+                            // $rootScope.loggedUser = user;
                         });
                         $scope.open(true, 'You kicked his butt');
                     }
@@ -256,10 +256,10 @@ angular.module('TicTacToe.game', [])
                     value: cell.value
                 };
 
-                socket.emit('advance', advance, function (result, error) {
-                    game.yourTurn = false;
-                    $scope.$apply();
-                });
+                // socket.emit('advance', advance, function (result, error) {
+                //     game.yourTurn = false;
+                //     $scope.$apply();
+                // });
             }
         };
 
